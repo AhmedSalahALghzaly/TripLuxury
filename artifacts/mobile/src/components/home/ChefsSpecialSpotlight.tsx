@@ -621,19 +621,23 @@ interface SpotlightDotProps {
   onPress: () => void;
 }
 
-const DOT_ACTIVE_WIDTH = 14;
+/** Active pill width — real pill/capsule shape (wider than an inactive dot). */
+const PILL_W = 22;
+const PILL_H = 7;
 const DOT_STEP = INDICATORS.dot.width + SPACING.xs; // 6 + 4 = 10
-const DOT_ACTIVE_SCALE_X = DOT_ACTIVE_WIDTH / INDICATORS.dot.width;
 
 const SpotlightDot = memo(({ index, pillX, onPress }: SpotlightDotProps) => {
   const colorScheme = useColorScheme();
-  const dotBg = colorScheme === 'dark' ? OVERLAYS.ivoryDot : 'rgba(0,0,0,0.22)';
+  // Clear, visible colors that work on any card background
+  const dotBg = colorScheme === 'dark'
+    ? 'rgba(255,255,255,0.60)'
+    : 'rgba(0,0,0,0.45)';
   const animStyle = useAnimatedStyle(() => {
     const dist = Math.abs(pillX.value - index * DOT_STEP);
     const proximity = 1 - Math.min(dist / DOT_STEP, 1);
-    const opacity = interpolate(proximity, [0, 1], [0.32, 1], Extrapolation.CLAMP);
-    const scaleX = interpolate(proximity, [0, 1], [1, DOT_ACTIVE_SCALE_X], Extrapolation.CLAMP);
-    return { opacity, transform: [{ scaleX }] };
+    // Inactive: 55% opacity; active: 100% — no scaleX (pill handles active state)
+    const opacity = interpolate(proximity, [0, 1], [0.55, 1], Extrapolation.CLAMP);
+    return { opacity };
   });
 
   return (
@@ -1574,11 +1578,13 @@ const styles = StyleSheet.create({
   },
   slidingPillOuter: {
     position: 'absolute',
-    left: 0,
-    top: 0,
-    width: INDICATORS.dot.width,
-    height: INDICATORS.dot.height,
-    borderRadius: INDICATORS.dot.borderRadius,
+    // Centre the pill on each dot: (dotW − pillW)/2 = (6−22)/2 = −8
+    left: (INDICATORS.dot.width - PILL_W) / 2,
+    // Centre vertically: (dotH − pillH)/2 = (6−7)/2 = −0.5
+    top: (INDICATORS.dot.height - PILL_H) / 2,
+    width: PILL_W,
+    height: PILL_H,
+    borderRadius: PILL_H / 2, // fully-rounded capsule
   },
   slidingPillGlowHalo: {
     position: 'absolute',
@@ -1586,16 +1592,16 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     bottom: 0,
-    borderRadius: INDICATORS.dot.borderRadius,
+    borderRadius: PILL_H / 2,
     backgroundColor: COLORS.gold,
     ...(Platform.OS === 'web'
-      ? { boxShadow: `0px 0px 6px 1px rgba(200, 162, 74, 0.75)` }
+      ? { boxShadow: `0px 0px 8px 2px rgba(200, 162, 74, 0.80)` }
       : {
           shadowColor: COLORS.gold,
           shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.75,
-          shadowRadius: 4,
-          elevation: 4,
+          shadowOpacity: 0.85,
+          shadowRadius: 5,
+          elevation: 5,
         }),
   },
   slidingPillFill: {
@@ -1604,7 +1610,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     bottom: 0,
-    borderRadius: INDICATORS.dot.borderRadius,
+    borderRadius: PILL_H / 2,
     backgroundColor: COLORS.gold,
   },
 
