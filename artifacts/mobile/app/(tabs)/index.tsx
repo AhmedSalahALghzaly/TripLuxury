@@ -1348,25 +1348,23 @@ export default function HomeScreen() {
         <View style={{ height: 20 }} />
 
         {/* 9. Promotional Banners — animated carousel */}
-        {(bannersLoading || banners.length > 0) && (
-          <View style={styles.bannersSection}>
-            <MagazineSectionHeader
-              eyebrow={language === "ar" ? "المجلة" : "THE JOURNAL"}
-              title={
-                language === "ar" ? "اخبار ومقالات خاصة" : "Stories & Specials"
-              }
-              caption={
-                language === "ar"
-                  ? "أحدث ما يدور في صالات الغزالي."
-                  : "The latest from inside Al-Ghazaly."
-              }
-            />
-            <OfferSliderCarousel
-              banners={banners}
-              isLoading={bannersLoading}
-            />
-          </View>
-        )}
+        <View style={styles.bannersSection}>
+          <MagazineSectionHeader
+            eyebrow={language === "ar" ? "المجلة" : "THE JOURNAL"}
+            title={
+              language === "ar" ? "اخبار ومقالات خاصة" : "Stories & Specials"
+            }
+            caption={
+              language === "ar"
+                ? "أحدث ما يدور في صالات الغزالي."
+                : "The latest from inside Al-Ghazaly."
+            }
+          />
+          <OfferSliderCarousel
+            banners={banners}
+            isLoading={bannersLoading}
+          />
+        </View>
 
         {/* 10. Global Ratings Strip */}
         {footerConfig.show_ratings_strip !== false && (

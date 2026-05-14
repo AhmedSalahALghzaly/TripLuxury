@@ -22,6 +22,7 @@ import {
   StyleSheet,
   Platform,
   useWindowDimensions,
+  useColorScheme,
   ViewToken,
   Image as RNImage,
 } from 'react-native';
@@ -65,7 +66,7 @@ import {
   ELEVATION,
   INDICATORS,
 } from '../../constants/luxuryTokens';
-import { bundleOfferApi } from '../../services/api';
+import { bundleOfferApi, promotionApi } from '../../services/api';
 import { Skeleton } from '../ui/Skeleton';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -129,6 +130,10 @@ interface BundleItem {
   is_active?: boolean;
   rating_average?: number | null;
   rating_count?: number;
+  /** 'promotion' for slider-type promos, 'bundle' for bundle offers (default) */
+  itemType?: 'bundle' | 'promotion';
+  target_restaurant_id?: string | null;
+  target_product_id?: string | null;
 }
 
 function parseNum(v: number | string | null | undefined): number | undefined {
@@ -154,6 +159,21 @@ function mapBundle(b: BundleOfferApiResponse, index: number): BundleItem {
     is_active: b.is_active,
     rating_average: b.rating_average ?? null,
     rating_count: b.rating_count ?? 0,
+  };
+}
+
+function mapPromotion(p: any, index: number): BundleItem {
+  const rawDiscount = p.discount_percentage != null ? parseNum(p.discount_percentage) : undefined;
+  return {
+    id: p.id,
+    title: p.title || p.name || `Special ${index + 1}`,
+    title_ar: p.title_ar || p.name_ar,
+    image: p.image_url || p.image || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length],
+    discount_percentage: rawDiscount != null ? Math.round(rawDiscount) : undefined,
+    is_active: p.is_active,
+    itemType: 'promotion',
+    target_restaurant_id: p.target_car_model_id || p.target_restaurant_id || null,
+    target_product_id: p.target_product_id || null,
   };
 }
 
@@ -606,6 +626,8 @@ const DOT_STEP = INDICATORS.dot.width + SPACING.xs; // 6 + 4 = 10
 const DOT_ACTIVE_SCALE_X = DOT_ACTIVE_WIDTH / INDICATORS.dot.width;
 
 const SpotlightDot = memo(({ index, pillX, onPress }: SpotlightDotProps) => {
+  const colorScheme = useColorScheme();
+  const dotBg = colorScheme === 'dark' ? OVERLAYS.ivoryDot : 'rgba(0,0,0,0.22)';
   const animStyle = useAnimatedStyle(() => {
     const dist = Math.abs(pillX.value - index * DOT_STEP);
     const proximity = 1 - Math.min(dist / DOT_STEP, 1);
@@ -620,7 +642,7 @@ const SpotlightDot = memo(({ index, pillX, onPress }: SpotlightDotProps) => {
       hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
       activeOpacity={0.7}
     >
-      <Animated.View style={[styles.dot, animStyle]} />
+      <Animated.View style={[styles.dot, { backgroundColor: dotBg }, animStyle]} />
     </TouchableOpacity>
   );
 });
@@ -715,11 +737,19 @@ export const ChefsSpecialSpotlight: React.FC = () => {
 
   const fetchBundles = useCallback(async () => {
     try {
-      const response = await bundleOfferApi.getAll(true);
-      const raw: BundleOfferApiResponse[] = Array.isArray(response.data) ? response.data : [];
-      const active = raw.filter((b) => b.is_active !== false);
-      const mapped = active.map((b, i) => mapBundle(b, i));
-      setBundles(mapped.length > 0 ? mapped : STATIC_FALLBACK);
+      const [bundleRes, promoRes] = await Promise.all([
+        bundleOfferApi.getAll(true),
+        promotionApi.getAll('slider', true).catch(() => ({ data: [] })),
+      ]);
+      const rawBundles: BundleOfferApiResponse[] = Array.isArray(bundleRes.data) ? bundleRes.data : [];
+      const rawPromos: any[] = Array.isArray(promoRes.data) ? promoRes.data : [];
+
+      const activeBundles = rawBundles.filter((b) => b.is_active !== false);
+      const mappedBundles = activeBundles.map((b, i) => mapBundle(b, i));
+      const mappedPromos = rawPromos.filter((p) => p.is_active !== false).map((p, i) => mapPromotion(p, i));
+
+      const combined = [...mappedPromos, ...mappedBundles];
+      setBundles(combined.length > 0 ? combined : STATIC_FALLBACK);
     } catch {
       setBundles(STATIC_FALLBACK);
     } finally {
@@ -734,6 +764,9 @@ export const ChefsSpecialSpotlight: React.FC = () => {
       'bundle_created',
       'bundle_updated',
       'bundle_deleted',
+      'promotion_created',
+      'promotion_updated',
+      'promotion_deleted',
       'reconnect_sweep',
     ],
     () => { fetchBundles(); },
@@ -1077,7 +1110,15 @@ export const ChefsSpecialSpotlight: React.FC = () => {
   // ─── Press handler ──────────────────────────────────────────────────────────────
   const handleBundlePress = useCallback((bundle: BundleItem) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push(`/offer/${bundle.id}`);
+    if (bundle.itemType === 'promotion') {
+      if (bundle.target_restaurant_id) {
+        router.push(`/brand/${bundle.target_restaurant_id}`);
+      } else if (bundle.target_product_id) {
+        router.push(`/product/${bundle.target_product_id}`);
+      }
+    } else {
+      router.push(`/offer/${bundle.id}`);
+    }
   }, [router]);
 
   // ─── Render item ────────────────────────────────────────────────────────────────

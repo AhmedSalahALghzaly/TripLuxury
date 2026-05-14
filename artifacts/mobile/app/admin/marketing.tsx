@@ -674,12 +674,19 @@ function MarketingSuiteScreen() {
   // Filter items by search - use useMemo for performance
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return (products as any[]).filter((p: any) =>
+    let list = (products as any[]).filter((p: any) =>
       p.name?.toLowerCase().includes(q) ||
       p.name_ar?.toLowerCase().includes(q) ||
       p.sku?.toLowerCase().includes(q)
     );
-  }, [products, searchQuery]);
+    if (selectorMode === 'bundle' && bundleTargetRestaurantId) {
+      list = list.filter((p: any) => {
+        const ids: string[] = Array.isArray(p.car_model_ids) ? p.car_model_ids : [];
+        return ids.includes(bundleTargetRestaurantId);
+      });
+    }
+    return list;
+  }, [products, searchQuery, selectorMode, bundleTargetRestaurantId]);
 
   const filteredRestaurants = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -2167,6 +2174,19 @@ function MarketingSuiteScreen() {
               placeholder={language === 'ar' ? 'بحث...' : 'Search...'}
               placeholderTextColor={colors.textSecondary}
             />
+            {selectorMode === 'bundle' && bundleTargetRestaurantId ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: colors.primary + '18', borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                <Ionicons name="filter" size={14} color={colors.primary} />
+                <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', flex: 1 }}>
+                  {language === 'ar'
+                    ? `المنتجات من: ${getSelectedRestaurantName(bundleTargetRestaurantId)}`
+                    : `Products from: ${getSelectedRestaurantName(bundleTargetRestaurantId)}`}
+                </Text>
+                <TouchableOpacity onPress={() => setBundleTargetRestaurantId('')}>
+                  <Ionicons name="close-circle" size={16} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            ) : null}
             <View style={styles.flashListSelectorContainer}>
               <FlashList<any>
                 data={filteredProducts}

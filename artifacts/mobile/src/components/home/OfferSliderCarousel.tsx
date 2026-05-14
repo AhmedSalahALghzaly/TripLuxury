@@ -32,6 +32,7 @@ import {
   StyleSheet,
   Platform,
   useWindowDimensions,
+  useColorScheme,
   ViewToken,
   Image as RNImage,
 } from 'react-native';
@@ -133,6 +134,27 @@ interface Banner {
   target_restaurant_id?: string;
   target_car_model_id?: string;
 }
+
+const STATIC_FALLBACK_BANNERS: Banner[] = [
+  {
+    id: 'static-banner-1',
+    title: 'Stories & Specials',
+    title_ar: 'عروض خاصة',
+    image_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    id: 'static-banner-2',
+    title: 'Nile Views & Fine Dining',
+    title_ar: 'إطلالات النيل والطعام الراقي',
+    image_url: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    id: 'static-banner-3',
+    title: 'Seasonal Chef Selections',
+    title_ar: 'اختيارات الشيف الموسمية',
+    image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1400&q=80',
+  },
+];
 
 interface SlideProps {
   banner: Banner;
@@ -544,6 +566,8 @@ const DOT_ACTIVE_WIDTH = 14; // pt — target width when fully active
 const DOT_ACTIVE_SCALE_X = DOT_ACTIVE_WIDTH / INDICATORS.dot.width; // ≈ 2.33
 
 const Dot = memo(({ index, pillX, onPress }: DotProps) => {
+  const colorScheme = useColorScheme();
+  const dotBg = colorScheme === 'dark' ? OVERLAYS.ivoryDot : 'rgba(0,0,0,0.22)';
   const animStyle = useAnimatedStyle(() => {
     // Distance in dot-track space between this dot's centre and the pill.
     const dist = Math.abs(pillX.value - index * DOT_STEP);
@@ -566,7 +590,7 @@ const Dot = memo(({ index, pillX, onPress }: DotProps) => {
       hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
       activeOpacity={0.7}
     >
-      <Animated.View style={[styles.dot, animStyle]} />
+      <Animated.View style={[styles.dot, { backgroundColor: dotBg }, animStyle]} />
     </TouchableOpacity>
   );
 });
@@ -773,7 +797,8 @@ export const OfferSliderCarousel: React.FC<OfferSliderCarouselProps> = ({
    */
   const longPressInProgressRef = useRef(false);
 
-  const count = banners.length;
+  const effectiveBanners = (!isLoading && banners.length === 0) ? STATIC_FALLBACK_BANNERS : banners;
+  const count = effectiveBanners.length;
   const isSingle = count === 1;
 
   const scrollToIndex = useCallback((idx: number, animated = true) => {
@@ -1210,7 +1235,7 @@ export const OfferSliderCarousel: React.FC<OfferSliderCarouselProps> = ({
     <View style={styles.container}>
       <Animated.FlatList
         ref={animatedListRef}
-        data={banners}
+        data={effectiveBanners}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         horizontal
@@ -1238,7 +1263,7 @@ export const OfferSliderCarousel: React.FC<OfferSliderCarouselProps> = ({
           <View style={styles.dotsRow}>
             <View style={styles.dotsRowInner}>
               <Animated.View style={[styles.dotsTrack, hintStyle]}>
-                {banners.map((_, i) => (
+                {effectiveBanners.map((_, i) => (
                   <Dot key={i} index={i} pillX={pillX} onPress={() => handleDotPress(i)} />
                 ))}
                 <SlidingPill pillX={pillX} pillOpacity={pillOpacity} count={count} isPaused={isPaused || isAdvancing} />
