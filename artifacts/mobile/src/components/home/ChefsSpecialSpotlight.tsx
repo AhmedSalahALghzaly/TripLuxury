@@ -396,7 +396,10 @@ const BundleSlide = memo(({
 
   return (
     <View style={styles.slideOuter}>
-      <Animated.View style={[{ width: slideWidth }, slideStyle]}>
+      <Text style={{ color: 'lime', fontSize: 24, backgroundColor: 'black', padding: 8, position: 'absolute', top: 0, left: 0, zIndex: 999 }}>
+        SLIDE {index} :: {String(bundle?.id ?? 'NO_BUNDLE')}
+      </Text>
+      <Animated.View style={[{ width: slideWidth, opacity: 1 }]}>
         <Animated.View style={[styles.slideCard, { width: slideWidth }]}>
             {/* Gold shimmer border overlay */}
             <Animated.View
@@ -1194,7 +1197,7 @@ export const ChefsSpecialSpotlight: React.FC = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         initialScrollIndex={0}
-        removeClippedSubviews
+        removeClippedSubviews={Platform.OS !== 'web'}
         contentContainerStyle={isWide ? { paddingHorizontal: sideInset } : undefined}
       />
 
@@ -1307,7 +1310,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slideTouchable: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1395,9 +1402,10 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     gap: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: 'rgba(255,0,0,0.5)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,215,0,0.18)',
+    zIndex: 30,
   },
   contentCardRTL: {
     alignItems: 'flex-end',

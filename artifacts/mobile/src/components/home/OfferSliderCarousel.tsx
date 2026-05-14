@@ -1252,7 +1252,7 @@ export const OfferSliderCarousel: React.FC<OfferSliderCarouselProps> = ({
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         initialScrollIndex={0}
-        removeClippedSubviews
+        removeClippedSubviews={Platform.OS !== 'web'}
         contentContainerStyle={isWide ? { paddingHorizontal: sideInset } : undefined}
       />
 
