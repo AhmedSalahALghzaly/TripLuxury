@@ -53,8 +53,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
             backgroundColor: isDark
               ? 'rgba(30, 41, 59, 0.85)'
               : 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(10px)',
-          },
+          } as any,
           style,
         ]}
       >

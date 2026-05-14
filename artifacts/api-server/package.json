@@ -12,7 +12,7 @@
     "restore": "tsx src/scripts/restore-db.ts"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.19.0",
+    "@supabase/supabase-js": "^2.49.1",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.217.0",
     "@opentelemetry/context-async-hooks": "^2.7.1",
