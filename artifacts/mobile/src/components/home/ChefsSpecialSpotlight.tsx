@@ -24,8 +24,8 @@ import {
   useWindowDimensions,
   useColorScheme,
   ViewToken,
-  Image as RNImage,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CarouselControlsTooltip, TOOLTIP_STORAGE_KEY } from './CarouselControlsTooltip';
 import { Ionicons } from '@expo/vector-icons';
@@ -423,45 +423,42 @@ const BundleSlide = memo(({
               </View>
             )}
 
-            {/*
-             * Touch capture layer — covers the entire card.
-             * Content card lives OUTSIDE this touchable (sibling in slideCard)
-             * so that slideCard (position:relative) is the containing block for
-             * absolute children, which works reliably on web.
-             */}
+            {/* ── Layer 1: background image (direct child of slideCard for reliable web rendering) ── */}
+            {imageSource ? (
+              <ExpoImage
+                source={{ uri: imageSource }}
+                style={StyleSheet.absoluteFillObject}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                pointerEvents="none"
+              />
+            ) : (
+              <LinearGradient
+                colors={GRADIENTS.bundleCardBurgundy}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
+                pointerEvents="none"
+              >
+                <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
+              </LinearGradient>
+            )}
+
+            {/* ── Layer 2: dark cinematic scrim ── */}
+            <LinearGradient
+              colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
+              start={{ x: 0, y: 0.25 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+
+            {/* ── Layer 3: touch capture (absoluteFill, no decorations inside) ── */}
             <TouchableOpacity
               activeOpacity={0.90}
               onPress={() => onPress(bundle)}
               style={styles.slideTouchable}
             >
-              {/* Background image */}
-              {imageSource ? (
-                <RNImage
-                  source={{ uri: imageSource }}
-                  style={StyleSheet.absoluteFillObject}
-                  resizeMode="cover"
-                />
-              ) : (
-                <LinearGradient
-                  colors={GRADIENTS.bundleCardBurgundy}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
-                  pointerEvents="none"
-                >
-                  <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
-                </LinearGradient>
-              )}
-
-              {/* Dark cinematic scrim */}
-              <LinearGradient
-                colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
-                start={{ x: 0, y: 0.25 }}
-                end={{ x: 0, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-
               {/* Leading corner gold accent */}
               <View
                 style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]}
