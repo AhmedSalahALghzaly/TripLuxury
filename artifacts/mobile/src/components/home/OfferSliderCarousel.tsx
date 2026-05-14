@@ -35,9 +35,7 @@ import {
   useColorScheme,
   ViewToken,
   Image as RNImage,
-  ImageBackground,
 } from 'react-native';
-import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -439,6 +437,11 @@ const Slide = memo(({
               </View>
             )}
 
+            {/*
+             * Touch capture layer — absoluteFill over slideCard.
+             * glassCard lives OUTSIDE as sibling so slideCard (position:relative)
+             * is its containing block — reliable on both native and web.
+             */}
             <TouchableOpacity
               activeOpacity={0.90}
               onPress={handlePress}
@@ -447,83 +450,90 @@ const Slide = memo(({
               delayLongPress={400}
               style={styles.slideTouchable}
             >
-              <ImageBackground
-                source={imageSource ? { uri: imageSource } : undefined}
-                style={styles.slideImageBackground}
-                imageStyle={styles.slideImageBg}
-                resizeMode="cover"
-              >
-                {/* Fallback gradient when image is missing */}
-                {!imageSource && (
-                  <LinearGradient
-                    colors={GRADIENTS.bundleCardBurgundy}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
-                    pointerEvents="none"
-                  >
-                    <Ionicons name="restaurant" size={56} color={OVERLAYS.goldGlowSoft} />
-                  </LinearGradient>
-                )}
-
-                {/* Dark cinematic scrim — also acts as flex container for content */}
+              {/* Background image */}
+              {imageSource ? (
+                <RNImage
+                  source={{ uri: imageSource }}
+                  style={StyleSheet.absoluteFillObject}
+                  resizeMode="cover"
+                />
+              ) : (
                 <LinearGradient
-                  colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
-                  start={{ x: 0, y: 0.25 }}
-                  end={{ x: 0, y: 1 }}
-                  style={styles.scrim}
+                  colors={GRADIENTS.bundleCardBurgundy}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
+                  pointerEvents="none"
                 >
-                  {/* Leading corner gold accent (top-left in LTR, top-right in RTL) */}
-                  <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]} pointerEvents="none">
-                    <LinearGradient
-                      colors={['rgba(200,162,74,0.55)', 'transparent']}
-                      start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
-                      end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
-                      style={styles.cornerGradient}
-                    />
-                  </View>
-
-                  {/* Paused indicator pill — top-center, fades in/out */}
-                  <Animated.View
-                    style={[styles.pausedPillWrapper, pausedPillStyle]}
-                    pointerEvents="none"
-                  >
-                    <View style={styles.pausedPill}>
-                      <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
-                      <Text style={styles.pausedPillText}>
-                        {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
-                      </Text>
-                    </View>
-                  </Animated.View>
-
-                  {/* Glass info card at the bottom */}
-                  <View style={styles.glassCard}>
-                    {title ? (
-                      <Text
-                        style={[styles.slideTitle, isRTL && styles.textRight]}
-                        numberOfLines={2}
-                      >
-                        {title}
-                      </Text>
-                    ) : null}
-
-                    {/* CTA pill */}
-                    <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
-                      <View style={styles.ctaPill}>
-                        <Text style={styles.ctaPillText}>
-                          {language === 'ar' ? 'اعرف أكثر' : 'View Offer'}
-                        </Text>
-                        <Ionicons
-                          name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                          size={11}
-                          color={COLORS.charcoalDeep}
-                        />
-                      </View>
-                    </View>
-                  </View>
+                  <Ionicons name="restaurant" size={56} color={OVERLAYS.goldGlowSoft} />
                 </LinearGradient>
-              </ImageBackground>
+              )}
+
+              {/* Dark cinematic scrim */}
+              <LinearGradient
+                colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
+                start={{ x: 0, y: 0.25 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+
+              {/* Leading corner gold accent */}
+              <View
+                style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]}
+                pointerEvents="none"
+              >
+                <LinearGradient
+                  colors={['rgba(200,162,74,0.55)', 'transparent']}
+                  start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
+                  end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
+                  style={styles.cornerGradient}
+                />
+              </View>
+
+              {/* Paused indicator pill — top-center */}
+              <Animated.View
+                style={[styles.pausedPillWrapper, pausedPillStyle]}
+                pointerEvents="none"
+              >
+                <View style={styles.pausedPill}>
+                  <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
+                  <Text style={styles.pausedPillText}>
+                    {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
+                  </Text>
+                </View>
+              </Animated.View>
             </TouchableOpacity>
+
+            {/*
+             * Glass info card — sibling of slideTouchable, direct child of
+             * slideCard (position:relative). Resolves bottom:0 to slideCard.
+             * pointerEvents="none" lets touches fall through to slideTouchable.
+             */}
+            <View style={styles.glassCard} pointerEvents="none">
+              {title ? (
+                <Text
+                  style={[styles.slideTitle, isRTL && styles.textRight]}
+                  numberOfLines={2}
+                >
+                  {title}
+                </Text>
+              ) : null}
+
+              {/* CTA pill */}
+              <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
+                <View style={styles.ctaPill}>
+                  <Text style={styles.ctaPillText}>
+                    {language === 'ar' ? 'اعرف أكثر' : 'View Offer'}
+                  </Text>
+                  <Ionicons
+                    name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                    size={11}
+                    color={COLORS.charcoalDeep}
+                  />
+                </View>
+              </View>
+            </View>
           </Animated.View>
         </Animated.View>
       </View>
@@ -1338,7 +1348,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slideTouchable: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1359,7 +1369,6 @@ const styles = StyleSheet.create({
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
   },
   cornerAccent: {
     position: 'absolute',
@@ -1408,21 +1417,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  /** Slide image background (web-reliable, replaces nested absolute parallax) */
-  slideImageBackground: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  slideImageBg: {
-    width: '100%',
-    height: '100%',
-  },
-
-  /** Glassmorphism card at the bottom (now a flex child, not absolute) */
+  /** Glassmorphism card — pinned to bottom of slide */
   glassCard: {
-    width: '100%',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
