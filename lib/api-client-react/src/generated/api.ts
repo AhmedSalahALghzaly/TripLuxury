@@ -13,7 +13,13 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorDetail,
+  GetHousekeepingStatsByTableParams,
+  HealthStatus,
+  HousekeepingByTableResponse,
+  HousekeepingStatsResponse,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
 import type { ErrorType } from "../custom-fetch";
@@ -23,6 +29,192 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * Returns the last 100 rows from housekeeping_stats so admins can audit how much data has been pruned over time. Requires owner or admin role.
+ * @summary Get housekeeping stats
+ */
+export const getGetHousekeepingStatsUrl = () => {
+  return `/api/admin/housekeeping-stats`;
+};
+
+export const getHousekeepingStats = async (
+  options?: RequestInit,
+): Promise<HousekeepingStatsResponse> => {
+  return customFetch<HousekeepingStatsResponse>(getGetHousekeepingStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetHousekeepingStatsQueryKey = () => {
+  return [`/api/admin/housekeeping-stats`] as const;
+};
+
+export const getGetHousekeepingStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHousekeepingStats>>,
+  TError = ErrorType<ErrorDetail>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getHousekeepingStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetHousekeepingStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getHousekeepingStats>>
+  > = ({ signal }) => getHousekeepingStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHousekeepingStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetHousekeepingStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getHousekeepingStats>>
+>;
+export type GetHousekeepingStatsQueryError = ErrorType<ErrorDetail>;
+
+/**
+ * @summary Get housekeeping stats
+ */
+
+export function useGetHousekeepingStats<
+  TData = Awaited<ReturnType<typeof getHousekeepingStats>>,
+  TError = ErrorType<ErrorDetail>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getHousekeepingStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHousekeepingStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns cleanup totals grouped by table_name and a daily or weekly date bucket. Requires owner or admin role.
+ * @summary Get housekeeping stats grouped by table and date bucket
+ */
+export const getGetHousekeepingStatsByTableUrl = (
+  params?: GetHousekeepingStatsByTableParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/housekeeping-stats/by-table?${stringifiedParams}`
+    : `/api/admin/housekeeping-stats/by-table`;
+};
+
+export const getHousekeepingStatsByTable = async (
+  params?: GetHousekeepingStatsByTableParams,
+  options?: RequestInit,
+): Promise<HousekeepingByTableResponse> => {
+  return customFetch<HousekeepingByTableResponse>(
+    getGetHousekeepingStatsByTableUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetHousekeepingStatsByTableQueryKey = (
+  params?: GetHousekeepingStatsByTableParams,
+) => {
+  return [
+    `/api/admin/housekeeping-stats/by-table`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetHousekeepingStatsByTableQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHousekeepingStatsByTable>>,
+  TError = ErrorType<ErrorDetail>,
+>(
+  params?: GetHousekeepingStatsByTableParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHousekeepingStatsByTable>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetHousekeepingStatsByTableQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getHousekeepingStatsByTable>>
+  > = ({ signal }) =>
+    getHousekeepingStatsByTable(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHousekeepingStatsByTable>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetHousekeepingStatsByTableQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getHousekeepingStatsByTable>>
+>;
+export type GetHousekeepingStatsByTableQueryError = ErrorType<ErrorDetail>;
+
+/**
+ * @summary Get housekeeping stats grouped by table and date bucket
+ */
+
+export function useGetHousekeepingStatsByTable<
+  TData = Awaited<ReturnType<typeof getHousekeepingStatsByTable>>,
+  TError = ErrorType<ErrorDetail>,
+>(
+  params?: GetHousekeepingStatsByTableParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHousekeepingStatsByTable>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHousekeepingStatsByTableQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Returns server health status

@@ -18,3 +18,18 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_GOOGLE_CLIENT_ID = "72289459493-1ucjgechoc7icsla8a7hjcjda0fbueoo.apps.googleusercontent.com"
+EXPO_PUBLIC_POSTHOG_KEY = "phc_oH3EjZZb74TLDRKuWB89SpXCNqPv9aKNetUwAgeVpsUy"
+EXPO_PUBLIC_POSTHOG_HOST = "https://app.posthog.com"

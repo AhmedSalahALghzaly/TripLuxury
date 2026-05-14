@@ -8,3 +8,72 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
+
+export const OrderStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  preparing: "preparing",
+  ready: "ready",
+  shipped: "shipped",
+  out_for_delivery: "out_for_delivery",
+  delivered: "delivered",
+  cancelled: "cancelled",
+} as const;
+
+export interface HousekeepingStat {
+  id: string;
+  run_at: string;
+  table_name: string;
+  rows_deleted: number;
+}
+
+export interface HousekeepingStatsResponse {
+  stats: HousekeepingStat[];
+}
+
+export interface HousekeepingByTableRow {
+  table_name: string;
+  date_bucket: string;
+  total_rows: number;
+}
+
+export type HousekeepingByTableResponseBucket =
+  (typeof HousekeepingByTableResponseBucket)[keyof typeof HousekeepingByTableResponseBucket];
+
+export const HousekeepingByTableResponseBucket = {
+  day: "day",
+  week: "week",
+} as const;
+
+export interface HousekeepingByTableResponse {
+  groups: HousekeepingByTableRow[];
+  bucket: HousekeepingByTableResponseBucket;
+  days: number;
+}
+
+export interface ErrorDetail {
+  detail: string;
+}
+
+export type GetHousekeepingStatsByTableParams = {
+  /**
+   * Time granularity for grouping (day or week).
+   */
+  bucket?: GetHousekeepingStatsByTableBucket;
+  /**
+   * How many days back to include in the result.
+   * @minimum 1
+   * @maximum 365
+   */
+  days?: number;
+};
+
+export type GetHousekeepingStatsByTableBucket =
+  (typeof GetHousekeepingStatsByTableBucket)[keyof typeof GetHousekeepingStatsByTableBucket];
+
+export const GetHousekeepingStatsByTableBucket = {
+  day: "day",
+  week: "week",
+} as const;

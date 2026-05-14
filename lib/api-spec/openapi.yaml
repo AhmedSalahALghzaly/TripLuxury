@@ -10,7 +10,81 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: admin
+    description: Admin operations
 paths:
+  /admin/housekeeping-stats:
+    get:
+      operationId: getHousekeepingStats
+      tags: [admin]
+      summary: Get housekeeping stats
+      description: Returns the last 100 rows from housekeeping_stats so admins can audit how much data has been pruned over time. Requires owner or admin role.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of housekeeping run records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HousekeepingStatsResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDetail"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDetail"
+  /admin/housekeeping-stats/by-table:
+    get:
+      operationId: getHousekeepingStatsByTable
+      tags: [admin]
+      summary: Get housekeeping stats grouped by table and date bucket
+      description: Returns cleanup totals grouped by table_name and a daily or weekly date bucket. Requires owner or admin role.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: bucket
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [day, week]
+            default: day
+          description: Time granularity for grouping (day or week).
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+          description: How many days back to include in the result.
+      responses:
+        "200":
+          description: Grouped cleanup totals by table and date bucket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HousekeepingByTableResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDetail"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDetail"
   /healthz:
     get:
       operationId: healthCheck
@@ -33,4 +107,83 @@ components:
           type: string
       required:
         - status
+    OrderStatus:
+      type: string
+      enum:
+        - pending
+        - confirmed
+        - preparing
+        - ready
+        - shipped
+        - out_for_delivery
+        - delivered
+        - cancelled
+    HousekeepingStat:
+      type: object
+      properties:
+        id:
+          type: string
+        run_at:
+          type: string
+          format: date-time
+        table_name:
+          type: string
+        rows_deleted:
+          type: integer
+      required:
+        - id
+        - run_at
+        - table_name
+        - rows_deleted
+    HousekeepingStatsResponse:
+      type: object
+      properties:
+        stats:
+          type: array
+          items:
+            $ref: "#/components/schemas/HousekeepingStat"
+      required:
+        - stats
+    HousekeepingByTableRow:
+      type: object
+      properties:
+        table_name:
+          type: string
+        date_bucket:
+          type: string
+          format: date
+        total_rows:
+          type: integer
+      required:
+        - table_name
+        - date_bucket
+        - total_rows
+    HousekeepingByTableResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/HousekeepingByTableRow"
+        bucket:
+          type: string
+          enum: [day, week]
+        days:
+          type: integer
+      required:
+        - groups
+        - bucket
+        - days
+    ErrorDetail:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
 

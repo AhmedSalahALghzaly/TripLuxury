@@ -1,0 +1,64 @@
+### **Project Execution & Development Guidelines**
+
+**Initial Directive:**
+Please initialize the environment using the current project files. Ensure 100% stability and production-readiness from this initial session by leveraging the existing codebase without rebuilding or recreating existing structures.
+
+---
+
+### **Core Instructions for Development Continuity & Production Excellence**
+
+1.  **Live Code Priority**: All read and write operations **MUST** target the files currently present in the file**artifacts**. These files represent the most recent, "live" version of the codebase.
+2.  **Read-Only .git Access**: Access to the `.git` directory is permitted **ONLY** for contextual analysis (e.g., `git log`, `git show`). You are **STRICTLY PROHIBITED** from executing any Git commands that modify the repository state or restore legacy files to the working directory (e.g., `git checkout`, `git reset`, `git revert`).
+3.  **Contextual Intelligence**: Utilize `.git` metadata exclusively to understand project architecture, complex dependencies, and historical design intent. Do **NOT** use it as a source for code extraction.
+4.  **Development Continuity**: Evaluate the current state of the working directory and apply all enhancements directly to these files, ensuring seamless integration and compatibility with the existing logic.
+5.  **Production-Ready Excellence**: Ensure the application operates at full production capacity with all features and functionalities fully stable and optimized. Every component must deliver peak performance and professional-grade reliability from the first session, with a strict focus on preventing regressions, errors, or technical debt.
+
+---
+
+**Search the Skills section and you will find the ai-integrations-openai (chatgpt) and Object-storage (appstorage) integrations, which have been successfully set up and implemented in the application and are working stably and efficiently.
+Enter their secrets to ensure everything works perfectly and professionally. The integrations are implemented through the Replit Integrations panel. These are fully local Replit integrations, and their fees will be automatically deducted from my platform account.Add and save the following secrets:
+
+DEFAULT_OBJECT_STORAGE_BUCKET_ID
+
+PRIVATE_OBJECT_DIR
+
+PUBLIC_OBJECT_SEARCH_PATHS
+
+AI_INTEGRATIONS_OPENAI_BASE_URL
+
+AI_INTEGRATIONS_OPENAI_API_KEY
+
+---
+
+**The owner's account "pc.2025.ai@gmail.com" must be registered, saved, and activated with the password "0135790" in Database. Once the owner successfully logs in via Google authentication And in interface "Auth/email", all permissions will be granted.**
+
+---
+
+Please enter and activate the following secrets: 
+
+GOOGLE_CLIENT_SECRET: "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"
+
+EXPO_PUBLIC_GOOGLE_CLIENT_ID: "72289459493-1ucjgechoc7icsla8a7hjcjda0fbueoo.apps.googleusercontent.com"
+
+EXPO_PUBLIC_POSTHOG_KEY: "phc_oH3EjZZb74TLDRKuWB89SpXCNqPv9aKNetUwAgeVpsUy"
+
+---
+
+## Project Setup and Full Operational Readiness on Replit
+
+**Objective:** Set up, verify, and ensure the full operational readiness and stability of the provided project within the Replit environment. The goal is to achieve a production-ready state from the initial session, with all features, integrations, and functionalities working flawlessly.
+
+
+1.  **Project Extraction and Initial Review:**
+    *   Extract the attached project archive (`.zip`).
+    *   Thoroughly review `SETUP.md` and `replit.md` for project structure, dependencies, setup procedures, and operational guidelines.
+
+2.  **Verification and Quality Assurance:**
+    *   Perform a typecheck to ensure code integrity: `pnpm run typecheck` "All errors must be resolved to ensure a smooth, error-free live deployment across the entire application."
+    *   Thoroughly verify all backend endpoints are responsive and correctly linked.
+    *   Confirm all integrations (Google OAuth, PostHog, OpenAI, Replit Object Storage) are fully functional and stable.
+    *   Conduct a comprehensive review of the entire application to ensure all features and functionalities are working as intended, without errors or regressions Or rebuild or reconstruct from scratch.
+
+**Expected Outcome:**
+
+The project should be fully operational within the Replit & application ready for production-level usage, demonstrating high stability and efficiency.

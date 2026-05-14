@@ -8,9 +8,107 @@
 import * as zod from "zod";
 
 /**
+ * Returns the last 100 rows from housekeeping_stats so admins can audit how much data has been pruned over time. Requires owner or admin role.
+ * @summary Get housekeeping stats
+ */
+export const GetHousekeepingStatsResponse = zod.object({
+  stats: zod.array(
+    zod.object({
+      id: zod.string(),
+      run_at: zod.coerce.date(),
+      table_name: zod.string(),
+      rows_deleted: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * Returns cleanup totals grouped by table_name and a daily or weekly date bucket. Requires owner or admin role.
+ * @summary Get housekeeping stats grouped by table and date bucket
+ */
+export const getHousekeepingStatsByTableQueryBucketDefault = `day`;
+export const getHousekeepingStatsByTableQueryDaysDefault = 30;
+export const getHousekeepingStatsByTableQueryDaysMax = 365;
+
+export const GetHousekeepingStatsByTableQueryParams = zod.object({
+  bucket: zod
+    .enum(["day", "week"])
+    .default(getHousekeepingStatsByTableQueryBucketDefault)
+    .describe("Time granularity for grouping (day or week)."),
+  days: zod.coerce
+    .number()
+    .min(1)
+    .max(getHousekeepingStatsByTableQueryDaysMax)
+    .default(getHousekeepingStatsByTableQueryDaysDefault)
+    .describe("How many days back to include in the result."),
+});
+
+export const GetHousekeepingStatsByTableResponse = zod.object({
+  groups: zod.array(
+    zod.object({
+      table_name: zod.string(),
+      date_bucket: zod.coerce.date(),
+      total_rows: zod.number(),
+    }),
+  ),
+  bucket: zod.enum(["day", "week"]),
+  days: zod.number(),
+});
+
+/**
  * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
+});
+
+export const GetProductStockHistoryQueryParams = zod.object({
+  limit: zod.coerce.number().min(1).max(500).default(50),
+  since: zod.string().optional(),
+});
+
+export const GetRestaurantStockHistoryQueryParams = zod.object({
+  limit: zod.coerce.number().min(1).max(500).default(50),
+});
+
+export const GetRatingsQueryParams = zod.object({
+  limit: zod.coerce.number().min(1).max(100).default(20),
+  restaurant_id: zod.string().uuid().optional(),
+});
+
+export const GetAdminRatingsQueryParams = zod.object({
+  page: zod.coerce.number().min(1).default(1),
+  limit: zod.coerce.number().min(1).max(200).default(20),
+  restaurant_id: zod.string().uuid().optional(),
+  star: zod.coerce.number().min(1).max(5).optional(),
+});
+
+export const GetAdminRatingsExportQueryParams = zod.object({
+  restaurant_id: zod.string().uuid().optional(),
+  star: zod.coerce.number().min(1).max(5).optional(),
+});
+
+export const GetPushLogQueryParams = zod.object({
+  page: zod.coerce.number().min(1).default(1),
+  limit: zod.coerce.number().min(1).max(200).default(50),
+  start_date: zod.string().optional(),
+  end_date: zod.string().optional(),
+  event_type: zod.string().optional(),
+  restaurant_id: zod.string().optional(),
+  unread_only: zod.string().optional(),
+});
+
+export const GetPushLogUnreadCountQueryParams = zod.object({
+  since: zod.string().optional(),
+  restaurant_id: zod.string().optional(),
+  event_type: zod.string().optional(),
+});
+
+export const GetPushLogTopOffendersQueryParams = zod.object({
+  limit: zod.coerce.number().min(1).max(100).default(10),
+  start_date: zod.string().optional(),
+  end_date: zod.string().optional(),
+  restaurant_id: zod.string().optional(),
+  cover_days: zod.coerce.number().min(1).max(365).default(30),
 });
