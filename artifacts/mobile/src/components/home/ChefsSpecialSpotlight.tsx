@@ -25,9 +25,7 @@ import {
   useColorScheme,
   ViewToken,
   Image as RNImage,
-  ImageBackground,
 } from 'react-native';
-import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CarouselControlsTooltip, TOOLTIP_STORAGE_KEY } from './CarouselControlsTooltip';
 import { Ionicons } from '@expo/vector-icons';
@@ -425,176 +423,189 @@ const BundleSlide = memo(({
               </View>
             )}
 
+            {/*
+             * Touch capture layer — covers the entire card.
+             * Content card lives OUTSIDE this touchable (sibling in slideCard)
+             * so that slideCard (position:relative) is the containing block for
+             * absolute children, which works reliably on web.
+             */}
             <TouchableOpacity
               activeOpacity={0.90}
               onPress={() => onPress(bundle)}
               style={styles.slideTouchable}
             >
-              <ImageBackground
-                source={imageSource ? { uri: imageSource } : undefined}
-                style={styles.slideImageBackground}
-                imageStyle={styles.slideImageBg}
-                resizeMode="cover"
-              >
-                {/* Fallback gradient when image is missing */}
-                {!imageSource && (
-                  <LinearGradient
-                    colors={GRADIENTS.bundleCardBurgundy}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
-                    pointerEvents="none"
-                  >
-                    <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
-                  </LinearGradient>
-                )}
-
-                {/* Dark cinematic scrim (decorative gradient, doesn't host content) */}
-                <LinearGradient
-                  colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
-                  start={{ x: 0, y: 0.25 }}
-                  end={{ x: 0, y: 1 }}
+              {/* Background image */}
+              {imageSource ? (
+                <RNImage
+                  source={{ uri: imageSource }}
                   style={StyleSheet.absoluteFillObject}
-                  pointerEvents="none"
+                  resizeMode="cover"
                 />
+              ) : (
+                <LinearGradient
+                  colors={GRADIENTS.bundleCardBurgundy}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
+                  pointerEvents="none"
+                >
+                  <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
+                </LinearGradient>
+              )}
 
-                {/* Overlay container — hosts all positioned content (web-reliable) */}
-                <View style={styles.scrim}>
-                  {/* Leading corner gold accent (top-left LTR, top-right RTL) */}
-                  <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]} pointerEvents="none">
-                    <LinearGradient
-                      colors={['rgba(200,162,74,0.55)', 'transparent']}
-                      start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
-                      end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
-                      style={styles.cornerGradient}
-                    />
-                  </View>
+              {/* Dark cinematic scrim */}
+              <LinearGradient
+                colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
+                start={{ x: 0, y: 0.25 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
 
-                  {/* Paused pill — top-center */}
-                  <Animated.View
-                    style={[styles.pausedPillWrapper, pausedPillStyle]}
-                    pointerEvents="none"
-                  >
-                    <View style={styles.pausedPill}>
-                      <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
-                      <Text style={styles.pausedPillText}>
-                        {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
-                      </Text>
-                    </View>
-                  </Animated.View>
+              {/* Leading corner gold accent */}
+              <View
+                style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]}
+                pointerEvents="none"
+              >
+                <LinearGradient
+                  colors={['rgba(200,162,74,0.55)', 'transparent']}
+                  start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
+                  end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
+                  style={styles.cornerGradient}
+                />
+              </View>
 
-                  {/* Pause/Play button — trailing top corner, active slide only */}
-                  {isActive && (
-                    <TouchableOpacity
-                      style={[
-                        styles.pauseButton,
-                        isRTL ? styles.pauseButtonLeadingRTL : styles.pauseButtonLeadingLTR,
-                      ]}
-                      onPress={onPauseToggle}
-                      hitSlop={10}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={isPaused ? 'play-circle' : 'pause-circle'}
-                        size={26}
-                        color="rgba(255,255,255,0.72)"
-                      />
-                    </TouchableOpacity>
-                  )}
-
-                  {/* Bundle content card */}
-                  <View style={[styles.contentCard, isRTL && styles.contentCardRTL]}>
-                {/* Top badge row: BUNDLE chip + discount + rating */}
-                <View style={[styles.topBadgeRow, isRTL && styles.topBadgeRowRTL]}>
-                  <View style={styles.bundleTypeChip}>
-                    <Ionicons name="gift" size={11} color={COLORS.charcoalDeep} />
-                    <Text style={styles.bundleTypeChipText}>
-                      {language === 'ar' ? 'عرض مجمع' : 'BUNDLE DEAL'}
-                    </Text>
-                  </View>
-                  <View style={styles.badgeTrailingRow}>
-                    {bundle.rating_average != null && bundle.rating_average > 0 && (
-                      <View style={styles.ratingChip}>
-                        <Ionicons name="star" size={10} color={COLORS.gold} />
-                        <Text style={styles.ratingChipText}>
-                          {bundle.rating_average.toFixed(1)}
-                          {(bundle.rating_count ?? 0) > 0
-                            ? ` (${bundle.rating_count})`
-                            : ''}
-                        </Text>
-                      </View>
-                    )}
-                    {discountPct != null && discountPct > 0 && (
-                      <LinearGradient
-                        colors={[COLORS.gold, COLORS.goldBright]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.discountBadge}
-                      >
-                        <Text style={styles.discountNum}>{discountPct}%</Text>
-                        <Text style={styles.discountLabel}>
-                          {language === 'ar' ? 'خصم' : 'OFF'}
-                        </Text>
-                      </LinearGradient>
-                    )}
-                  </View>
-                </View>
-
-                {/* Title */}
-                {title ? (
-                  <Text
-                    style={[styles.slideTitle, isRTL && styles.textRight]}
-                    numberOfLines={2}
-                  >
-                    {title}
+              {/* Paused pill — top-center */}
+              <Animated.View
+                style={[styles.pausedPillWrapper, pausedPillStyle]}
+                pointerEvents="none"
+              >
+                <View style={styles.pausedPill}>
+                  <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
+                  <Text style={styles.pausedPillText}>
+                    {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
                   </Text>
-                ) : null}
+                </View>
+              </Animated.View>
+            </TouchableOpacity>
 
-                {/* Product count chip */}
-                {productCount != null && productCount > 0 && (
-                  <View style={[styles.countChipRow, isRTL && styles.countChipRowRTL]}>
-                    <View style={styles.countChip}>
-                      <Ionicons name="fast-food-outline" size={11} color={COLORS.goldSoft} />
-                      <Text style={styles.countChipText}>
-                        {productCount} {language === 'ar' ? 'صنف' : 'items'}
+            {/*
+             * Bundle content card — sibling of slideTouchable, direct child of
+             * slideCard (position:relative). position:absolute bottom:0 resolves
+             * to slideCard on all platforms including web.
+             * pointerEvents="none" lets touches fall through to slideTouchable.
+             */}
+            <View
+              style={[styles.contentCard, isRTL && styles.contentCardRTL]}
+              pointerEvents="none"
+            >
+              {/* Top badge row: BUNDLE chip + discount + rating */}
+              <View style={[styles.topBadgeRow, isRTL && styles.topBadgeRowRTL]}>
+                <View style={styles.bundleTypeChip}>
+                  <Ionicons name="gift" size={11} color={COLORS.charcoalDeep} />
+                  <Text style={styles.bundleTypeChipText}>
+                    {language === 'ar' ? 'عرض مجمع' : 'BUNDLE DEAL'}
+                  </Text>
+                </View>
+                <View style={styles.badgeTrailingRow}>
+                  {bundle.rating_average != null && bundle.rating_average > 0 && (
+                    <View style={styles.ratingChip}>
+                      <Ionicons name="star" size={10} color={COLORS.gold} />
+                      <Text style={styles.ratingChipText}>
+                        {bundle.rating_average.toFixed(1)}
+                        {(bundle.rating_count ?? 0) > 0
+                          ? ` (${bundle.rating_count})`
+                          : ''}
                       </Text>
                     </View>
-                  </View>
-                )}
+                  )}
+                  {discountPct != null && discountPct > 0 && (
+                    <LinearGradient
+                      colors={[COLORS.gold, COLORS.goldBright]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.discountBadge}
+                    >
+                      <Text style={styles.discountNum}>{discountPct}%</Text>
+                      <Text style={styles.discountLabel}>
+                        {language === 'ar' ? 'خصم' : 'OFF'}
+                      </Text>
+                    </LinearGradient>
+                  )}
+                </View>
+              </View>
 
-                {/* Price row: original → discounted */}
-                {originalTotal != null && discountedTotal != null && (
-                  <View style={[styles.priceRow, isRTL && styles.priceRowRTL]}>
-                    <Text style={styles.oldPrice}>{originalTotal.toFixed(2)} ج.م</Text>
-                    <Ionicons
-                      name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                      size={14}
-                      color="rgba(255,255,255,0.50)"
-                    />
-                    <Text style={styles.newPrice}>
-                      {discountedTotal.toFixed(2)}{' '}
-                      <Text style={styles.currency}>ج.م</Text>
+              {/* Title */}
+              {title ? (
+                <Text
+                  style={[styles.slideTitle, isRTL && styles.textRight]}
+                  numberOfLines={2}
+                >
+                  {title}
+                </Text>
+              ) : null}
+
+              {/* Product count chip */}
+              {productCount != null && productCount > 0 && (
+                <View style={[styles.countChipRow, isRTL && styles.countChipRowRTL]}>
+                  <View style={styles.countChip}>
+                    <Ionicons name="fast-food-outline" size={11} color={COLORS.goldSoft} />
+                    <Text style={styles.countChipText}>
+                      {productCount} {language === 'ar' ? 'صنف' : 'items'}
                     </Text>
                   </View>
-                )}
+                </View>
+              )}
 
-                {/* CTA pill */}
-                <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
-                  <View style={styles.ctaPill}>
-                    <Text style={styles.ctaPillText}>
-                      {language === 'ar' ? 'اعرض التفاصيل' : 'View Bundle'}
-                    </Text>
-                    <Ionicons
-                      name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                      size={11}
-                      color={COLORS.charcoalDeep}
-                    />
-                  </View>
+              {/* Price row: original → discounted */}
+              {originalTotal != null && discountedTotal != null && (
+                <View style={[styles.priceRow, isRTL && styles.priceRowRTL]}>
+                  <Text style={styles.oldPrice}>{originalTotal.toFixed(2)} ج.م</Text>
+                  <Ionicons
+                    name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                    size={14}
+                    color="rgba(255,255,255,0.50)"
+                  />
+                  <Text style={styles.newPrice}>
+                    {discountedTotal.toFixed(2)}{' '}
+                    <Text style={styles.currency}>ج.م</Text>
+                  </Text>
                 </View>
-                  </View>
+              )}
+
+              {/* CTA pill */}
+              <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
+                <View style={styles.ctaPill}>
+                  <Text style={styles.ctaPillText}>
+                    {language === 'ar' ? 'اعرض التفاصيل' : 'View Bundle'}
+                  </Text>
+                  <Ionicons
+                    name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                    size={11}
+                    color={COLORS.charcoalDeep}
+                  />
                 </View>
-              </ImageBackground>
-            </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Pause/Play button — direct child of slideCard, above touch layer */}
+            {isActive && (
+              <TouchableOpacity
+                style={[
+                  styles.pauseButton,
+                  isRTL ? styles.pauseButtonLeadingRTL : styles.pauseButtonLeadingLTR,
+                ]}
+                onPress={onPauseToggle}
+                hitSlop={10}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={isPaused ? 'play-circle' : 'pause-circle'}
+                  size={26}
+                  color="rgba(255,255,255,0.72)"
+                />
+              </TouchableOpacity>
+            )}
           </Animated.View>
         </Animated.View>
       </View>
@@ -1294,8 +1305,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slideTouchable: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1316,7 +1326,6 @@ const styles = StyleSheet.create({
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
   },
   cornerAccent: {
     position: 'absolute',
@@ -1374,20 +1383,7 @@ const styles = StyleSheet.create({
     left: SPACING.md,
   },
 
-  // ── Slide image background (web-reliable, replaces nested absolute parallax) ──
-  slideImageBackground: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-    backgroundColor: 'lime',
-  },
-  slideImageBg: {
-    width: '100%',
-    height: '100%',
-  },
-
-  // ── Bundle content card ──
+  // ── Bundle content card — pinned to bottom of slide ──
   contentCard: {
     position: 'absolute',
     left: 0,
@@ -1397,10 +1393,9 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     gap: SPACING.sm,
-    backgroundColor: 'red',
-    borderTopWidth: 4,
-    borderTopColor: 'yellow',
-    minHeight: 120,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,215,0,0.18)',
   },
   contentCardRTL: {
     alignItems: 'flex-end',
