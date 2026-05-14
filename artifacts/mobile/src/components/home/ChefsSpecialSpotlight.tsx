@@ -396,10 +396,7 @@ const BundleSlide = memo(({
 
   return (
     <View style={styles.slideOuter}>
-      <Text style={{ color: 'lime', fontSize: 24, backgroundColor: 'black', padding: 8, position: 'absolute', top: 0, left: 0, zIndex: 999 }}>
-        SLIDE {index} :: {String(bundle?.id ?? 'NO_BUNDLE')}
-      </Text>
-      <Animated.View style={[{ width: slideWidth, opacity: 1 }]}>
+      <Animated.View style={[{ width: slideWidth }, slideStyle]}>
         <Animated.View style={[styles.slideCard, { width: slideWidth }]}>
             {/* Gold shimmer border overlay */}
             <Animated.View
@@ -1315,6 +1312,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: 1,
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1402,7 +1400,7 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     gap: SPACING.sm,
-    backgroundColor: 'rgba(255,0,0,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,215,0,0.18)',
     zIndex: 30,
