@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
-const port = Number(process.env.PORT || "5174");
+const port = Number(process.env.VITE_PORT || "5173");
 const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
@@ -26,6 +26,7 @@ export default defineConfig({
   },
   server: {
     port,
+    strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
     fs: {

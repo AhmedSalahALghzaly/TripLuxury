@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "dev": "cd artifacts/mockup-sandbox && node node_modules/vite/bin/vite.js dev",
     "build": "pnpm run typecheck && pnpm -r --filter \"!@workspace/mobile\" --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
