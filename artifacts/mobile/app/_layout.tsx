@@ -38,8 +38,8 @@ import { initSentry } from '../src/services/monitoring';
 initSentry();
 
 // Configuration Constants
-const MIN_SPLASH_DISPLAY_MS = Platform.OS === 'web' ? 500 : 2000;  // Shorter on web
-const HYDRATION_TIMEOUT_MS = 5000;    // 5 second fallback
+const MIN_SPLASH_DISPLAY_MS = Platform.OS === 'web' ? 0 : 2000;
+const HYDRATION_TIMEOUT_MS = Platform.OS === 'web' ? 800 : 5000;
 
 /**
  * Auth Guard Component - Optimized Startup Lifecycle
@@ -90,10 +90,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const notificationsLoaded = useRef(false);
   const sessionValidated = useRef(false);
   
-  // App ready state
+  // App ready state — on web: skip splash entirely so the home screen renders immediately
+  const isWeb = Platform.OS === 'web';
   const [appReady, setAppReady] = useState(false);
-  const [minSplashElapsed, setMinSplashElapsed] = useState(false);
-  const [hydrationComplete, setHydrationComplete] = useState(false);
+  const [minSplashElapsed, setMinSplashElapsed] = useState(isWeb);
+  const [hydrationComplete, setHydrationComplete] = useState(
+    isWeb ? useAppStore.getState()._hasHydrated : false
+  );
 
   /**
    * Phase 1: Asset Prefetch - runs once on mount
