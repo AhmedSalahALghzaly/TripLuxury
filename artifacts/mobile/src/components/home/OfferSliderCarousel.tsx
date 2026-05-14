@@ -688,10 +688,10 @@ export const OfferSliderSkeleton: React.FC = () => {
         {[0, 1, 2].map((i) => (
           <Skeleton
             key={i}
-            width={6}
-            height={6}
-            borderRadius={3}
-            style={{ marginHorizontal: 3 }}
+            width={i === 0 ? 22 : 6}
+            height={7}
+            borderRadius={4}
+            style={{ marginHorizontal: 4 }}
             animation="pulse"
           />
         ))}
