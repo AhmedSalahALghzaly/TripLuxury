@@ -449,8 +449,17 @@ const BundleSlide = memo(({
                   </LinearGradient>
                 )}
 
-                {/* Dark cinematic scrim — also acts as the flex container for content */}
-                <View style={[styles.scrim, { backgroundColor: 'rgba(0,255,255,0.5)' }]}>
+                {/* Dark cinematic scrim (decorative gradient, doesn't host content) */}
+                <LinearGradient
+                  colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
+                  start={{ x: 0, y: 0.25 }}
+                  end={{ x: 0, y: 1 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+
+                {/* Overlay container — hosts all positioned content (web-reliable) */}
+                <View style={styles.scrim}>
                   {/* Leading corner gold accent (top-left LTR, top-right RTL) */}
                   <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]} pointerEvents="none">
                     <LinearGradient
@@ -1285,13 +1294,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slideTouchable: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 50,
-    backgroundColor: 'magenta',
+    width: '100%',
+    height: '100%',
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1376,6 +1380,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     justifyContent: 'flex-end',
+    backgroundColor: 'lime',
   },
   slideImageBg: {
     width: '100%',
@@ -1384,15 +1389,18 @@ const styles = StyleSheet.create({
 
   // ── Bundle content card ──
   contentCard: {
-    width: '100%',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     gap: SPACING.sm,
-    backgroundColor: 'rgba(255,0,0,0.85)',
+    backgroundColor: 'red',
     borderTopWidth: 4,
-    borderTopColor: '#00FF00',
-    minHeight: 100,
+    borderTopColor: 'yellow',
+    minHeight: 120,
   },
   contentCardRTL: {
     alignItems: 'flex-end',
