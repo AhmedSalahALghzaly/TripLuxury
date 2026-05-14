@@ -25,6 +25,7 @@ import {
   useColorScheme,
   ViewToken,
   Image as RNImage,
+  ImageBackground,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -429,96 +430,71 @@ const BundleSlide = memo(({
               onPress={() => onPress(bundle)}
               style={styles.slideTouchable}
             >
-              {/* Background image with parallax */}
-              <View style={styles.imageClip}>
-                <Animated.View
-                  style={[
-                    styles.imageWrapper,
-                    { width: imageWrapperWidth, marginLeft: -PARALLAX_STRENGTH },
-                    imageStyle,
-                  ]}
-                >
-                  {imageSource ? (
-                    imageSource.startsWith('data:') ? (
-                      <RNImage
-                        source={{ uri: imageSource }}
-                        style={styles.slideImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <ExpoImage
-                        source={{ uri: imageSource }}
-                        style={styles.slideImage}
-                        contentFit="cover"
-                        cachePolicy="memory-disk"
-                        transition={350}
-                      />
-                    )
-                  ) : (
-                    <LinearGradient
-                      colors={GRADIENTS.bundleCardBurgundy}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.slidePlaceholder}
-                    >
-                      <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
-                    </LinearGradient>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Dark cinematic scrim */}
-              <LinearGradient
-                colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
-                start={{ x: 0, y: 0.25 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.scrim}
-              />
-
-              {/* Leading corner gold accent (top-left LTR, top-right RTL) */}
-              <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]}>
-                <LinearGradient
-                  colors={['rgba(200,162,74,0.55)', 'transparent']}
-                  start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
-                  end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
-                  style={styles.cornerGradient}
-                />
-              </View>
-
-              {/* Paused pill — top-center */}
-              <Animated.View
-                style={[styles.pausedPillWrapper, pausedPillStyle]}
-                pointerEvents="none"
+              <ImageBackground
+                source={imageSource ? { uri: imageSource } : undefined}
+                style={styles.slideImageBackground}
+                imageStyle={styles.slideImageBg}
+                resizeMode="cover"
               >
-                <View style={styles.pausedPill}>
-                  <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
-                  <Text style={styles.pausedPillText}>
-                    {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
-                  </Text>
-                </View>
-              </Animated.View>
+                {/* Fallback gradient when image is missing */}
+                {!imageSource && (
+                  <LinearGradient
+                    colors={GRADIENTS.bundleCardBurgundy}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
+                    pointerEvents="none"
+                  >
+                    <Ionicons name="gift" size={56} color={OVERLAYS.goldGlowSoft} />
+                  </LinearGradient>
+                )}
 
-              {/* Pause/Play button — trailing top corner, active slide only */}
-              {isActive && (
-                <TouchableOpacity
-                  style={[
-                    styles.pauseButton,
-                    isRTL ? styles.pauseButtonLeadingRTL : styles.pauseButtonLeadingLTR,
-                  ]}
-                  onPress={onPauseToggle}
-                  hitSlop={10}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={isPaused ? 'play-circle' : 'pause-circle'}
-                    size={26}
-                    color="rgba(255,255,255,0.72)"
-                  />
-                </TouchableOpacity>
-              )}
+                {/* Dark cinematic scrim — also acts as the flex container for content */}
+                <View style={[styles.scrim, { backgroundColor: 'rgba(0,255,255,0.5)' }]}>
+                  {/* Leading corner gold accent (top-left LTR, top-right RTL) */}
+                  <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]} pointerEvents="none">
+                    <LinearGradient
+                      colors={['rgba(200,162,74,0.55)', 'transparent']}
+                      start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
+                      end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
+                      style={styles.cornerGradient}
+                    />
+                  </View>
 
-              {/* Bundle content card */}
-              <View style={[styles.contentCard, isRTL && styles.contentCardRTL]}>
+                  {/* Paused pill — top-center */}
+                  <Animated.View
+                    style={[styles.pausedPillWrapper, pausedPillStyle]}
+                    pointerEvents="none"
+                  >
+                    <View style={styles.pausedPill}>
+                      <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
+                      <Text style={styles.pausedPillText}>
+                        {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
+                      </Text>
+                    </View>
+                  </Animated.View>
+
+                  {/* Pause/Play button — trailing top corner, active slide only */}
+                  {isActive && (
+                    <TouchableOpacity
+                      style={[
+                        styles.pauseButton,
+                        isRTL ? styles.pauseButtonLeadingRTL : styles.pauseButtonLeadingLTR,
+                      ]}
+                      onPress={onPauseToggle}
+                      hitSlop={10}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={isPaused ? 'play-circle' : 'pause-circle'}
+                        size={26}
+                        color="rgba(255,255,255,0.72)"
+                      />
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Bundle content card */}
+                  <View style={[styles.contentCard, isRTL && styles.contentCardRTL]}>
                 {/* Top badge row: BUNDLE chip + discount + rating */}
                 <View style={[styles.topBadgeRow, isRTL && styles.topBadgeRowRTL]}>
                   <View style={styles.bundleTypeChip}>
@@ -606,7 +582,9 @@ const BundleSlide = memo(({
                     />
                   </View>
                 </View>
-              </View>
+                  </View>
+                </View>
+              </ImageBackground>
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
@@ -1312,7 +1290,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 1,
+    zIndex: 50,
+    backgroundColor: 'magenta',
   },
   imageClip: {
     ...StyleSheet.absoluteFillObject,
@@ -1333,6 +1312,7 @@ const styles = StyleSheet.create({
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
   },
   cornerAccent: {
     position: 'absolute',
@@ -1390,20 +1370,29 @@ const styles = StyleSheet.create({
     left: SPACING.md,
   },
 
+  // ── Slide image background (web-reliable, replaces nested absolute parallax) ──
+  slideImageBackground: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  slideImageBg: {
+    width: '100%',
+    height: '100%',
+  },
+
   // ── Bundle content card ──
   contentCard: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    width: '100%',
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     gap: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,215,0,0.18)',
-    zIndex: 30,
+    backgroundColor: 'rgba(255,0,0,0.85)',
+    borderTopWidth: 4,
+    borderTopColor: '#00FF00',
+    minHeight: 100,
   },
   contentCardRTL: {
     alignItems: 'flex-end',

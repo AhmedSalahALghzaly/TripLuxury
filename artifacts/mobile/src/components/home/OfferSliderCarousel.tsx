@@ -35,6 +35,7 @@ import {
   useColorScheme,
   ViewToken,
   Image as RNImage,
+  ImageBackground,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -446,100 +447,82 @@ const Slide = memo(({
               delayLongPress={400}
               style={styles.slideTouchable}
             >
-              {/* Background image with parallax */}
-              <View style={styles.imageClip}>
-                <Animated.View
-                  style={[
-                    styles.imageWrapper,
-                    { width: imageWrapperWidth, marginLeft: -PARALLAX_STRENGTH },
-                    imageStyle,
-                  ]}
-                >
-                  {imageSource ? (
-                    imageSource.startsWith('data:') ? (
-                      <RNImage
-                        source={{ uri: imageSource }}
-                        style={styles.slideImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <ExpoImage
-                        source={{ uri: imageSource }}
-                        style={styles.slideImage}
-                        contentFit="cover"
-                        cachePolicy="memory-disk"
-                        transition={350}
-                      />
-                    )
-                  ) : (
-                    <LinearGradient
-                      colors={GRADIENTS.bundleCardBurgundy}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.slidePlaceholder}
-                    >
-                      <Ionicons name="restaurant" size={56} color={OVERLAYS.goldGlowSoft} />
-                    </LinearGradient>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Dark cinematic scrim */}
-              <LinearGradient
-                colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
-                start={{ x: 0, y: 0.25 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.scrim}
-              />
-
-              {/* Leading corner gold accent (top-left in LTR, top-right in RTL) */}
-              <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]}>
-                <LinearGradient
-                  colors={['rgba(200,162,74,0.55)', 'transparent']}
-                  start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
-                  end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
-                  style={styles.cornerGradient}
-                />
-              </View>
-
-              {/* Paused indicator pill — top-center, fades in/out */}
-              <Animated.View
-                style={[styles.pausedPillWrapper, pausedPillStyle]}
-                pointerEvents="none"
+              <ImageBackground
+                source={imageSource ? { uri: imageSource } : undefined}
+                style={styles.slideImageBackground}
+                imageStyle={styles.slideImageBg}
+                resizeMode="cover"
               >
-                <View style={styles.pausedPill}>
-                  <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
-                  <Text style={styles.pausedPillText}>
-                    {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
-                  </Text>
-                </View>
-              </Animated.View>
-
-              {/* Glass info card at the bottom */}
-              <View style={styles.glassCard}>
-                {title ? (
-                  <Text
-                    style={[styles.slideTitle, isRTL && styles.textRight]}
-                    numberOfLines={2}
+                {/* Fallback gradient when image is missing */}
+                {!imageSource && (
+                  <LinearGradient
+                    colors={GRADIENTS.bundleCardBurgundy}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[StyleSheet.absoluteFillObject, styles.slidePlaceholder]}
+                    pointerEvents="none"
                   >
-                    {title}
-                  </Text>
-                ) : null}
+                    <Ionicons name="restaurant" size={56} color={OVERLAYS.goldGlowSoft} />
+                  </LinearGradient>
+                )}
 
-                {/* CTA pill */}
-                <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
-                  <View style={styles.ctaPill}>
-                    <Text style={styles.ctaPillText}>
-                      {language === 'ar' ? 'اعرف أكثر' : 'View Offer'}
-                    </Text>
-                    <Ionicons
-                      name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                      size={11}
-                      color={COLORS.charcoalDeep}
+                {/* Dark cinematic scrim — also acts as flex container for content */}
+                <LinearGradient
+                  colors={['transparent', 'rgba(4,4,12,0.40)', 'rgba(4,4,12,0.92)']}
+                  start={{ x: 0, y: 0.25 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.scrim}
+                >
+                  {/* Leading corner gold accent (top-left in LTR, top-right in RTL) */}
+                  <View style={[styles.cornerAccent, isRTL ? styles.cornerAccentRTL : styles.cornerAccentLTR]} pointerEvents="none">
+                    <LinearGradient
+                      colors={['rgba(200,162,74,0.55)', 'transparent']}
+                      start={isRTL ? { x: 1, y: 0 } : { x: 0, y: 0 }}
+                      end={isRTL ? { x: 0, y: 1 } : { x: 1, y: 1 }}
+                      style={styles.cornerGradient}
                     />
                   </View>
-                </View>
-              </View>
+
+                  {/* Paused indicator pill — top-center, fades in/out */}
+                  <Animated.View
+                    style={[styles.pausedPillWrapper, pausedPillStyle]}
+                    pointerEvents="none"
+                  >
+                    <View style={styles.pausedPill}>
+                      <Ionicons name="pause-circle" size={13} color={COLORS.ivory} />
+                      <Text style={styles.pausedPillText}>
+                        {language === 'ar' ? 'متوقف مؤقتاً' : 'Paused'}
+                      </Text>
+                    </View>
+                  </Animated.View>
+
+                  {/* Glass info card at the bottom */}
+                  <View style={styles.glassCard}>
+                    {title ? (
+                      <Text
+                        style={[styles.slideTitle, isRTL && styles.textRight]}
+                        numberOfLines={2}
+                      >
+                        {title}
+                      </Text>
+                    ) : null}
+
+                    {/* CTA pill */}
+                    <View style={[styles.ctaRow, isRTL && styles.ctaRowRTL]}>
+                      <View style={styles.ctaPill}>
+                        <Text style={styles.ctaPillText}>
+                          {language === 'ar' ? 'اعرف أكثر' : 'View Offer'}
+                        </Text>
+                        <Ionicons
+                          name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                          size={11}
+                          color={COLORS.charcoalDeep}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </ImageBackground>
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
@@ -1381,6 +1364,7 @@ const styles = StyleSheet.create({
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
   },
   cornerAccent: {
     position: 'absolute',
@@ -1429,12 +1413,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  /** Glassmorphism card at the bottom */
+  /** Slide image background (web-reliable, replaces nested absolute parallax) */
+  slideImageBackground: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  slideImageBg: {
+    width: '100%',
+    height: '100%',
+  },
+
+  /** Glassmorphism card at the bottom (now a flex child, not absolute) */
   glassCard: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    width: '100%',
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
